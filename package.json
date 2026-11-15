@@ -1,0 +1,442 @@
+{
+  "name": "vscode-wallpaper-glass",
+  "displayName": "VSCode-Wallpaper",
+  "description": "Custom static/animated wallpapers for VS Code, with Wallpaper Engine scene.pkg rendering, frosted glass and floating panels.",
+  "icon": "media/icon.png",
+  "version": "1.0.0",
+  "publisher": "void-stars",
+  "engines": {
+    "vscode": "^1.146.0"
+  },
+  "categories": [
+    "Themes",
+    "Other"
+  ],
+  "keywords": [
+    "wallpaper",
+    "background",
+    "video wallpaper",
+    "wallpaper engine",
+    "glass",
+    "acrylic",
+    "blur",
+    "modern ui",
+    "floating panels",
+    "theme",
+    "anime",
+    "customization"
+  ],
+  "activationEvents": [
+    "onStartupFinished",
+    "onCommand:vsw.setCorners"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "vsw.openSidebar",
+        "title": "打开侧边栏面板"
+      },
+      {
+        "command": "vsw.openPanel",
+        "title": "打开控制面板",
+        "category": "壁纸·玻璃"
+      },
+      {
+        "command": "vsw.pickFile",
+        "title": "选择壁纸文件（图片 / 视频）",
+        "category": "壁纸·玻璃"
+      },
+      {
+        "command": "vsw.pickFolder",
+        "title": "选择壁纸文件夹（轮播）",
+        "category": "壁纸·玻璃"
+      },
+      {
+        "command": "vsw.useWallpaperEngine",
+        "title": "使用 Wallpaper Engine 当前壁纸",
+        "category": "壁纸·玻璃"
+      },
+      {
+        "command": "vsw.browseWallpaperEngine",
+        "title": "浏览 Wallpaper Engine 壁纸库",
+        "category": "壁纸·玻璃"
+      },
+      {
+        "command": "vsw.apply",
+        "title": "应用并重载窗口",
+        "category": "壁纸·玻璃"
+      },
+      {
+        "command": "vsw.revert",
+        "title": "还原（移除注入）",
+        "category": "壁纸·玻璃"
+      },
+      {
+        "command": "vsw.applyLayout",
+        "title": "应用布局到工作区设置",
+        "category": "壁纸·玻璃"
+      },
+      {
+        "command": "vsw.setCorners",
+        "title": "壁纸·玻璃: 设置四角圆角",
+        "category": "壁纸·玻璃"
+      }
+    ],
+    "configuration": {
+      "title": "VSCode-Wallpaper",
+      "properties": {
+        "vsw.enabled": {
+          "type": "boolean",
+          "default": false,
+          "markdownDescription": "启用壁纸与玻璃效果。修改后需要执行 **应用并重载窗口** 才会生效。"
+        },
+        "vsw.wallpaper.source": {
+          "type": "string",
+          "enum": [
+            "file",
+            "folder",
+            "wallpaperEngine"
+          ],
+          "enumDescriptions": [
+            "单个图片或视频文件",
+            "一个文件夹，按间隔轮播",
+            "跟随 Wallpaper Engine 当前壁纸"
+          ],
+          "default": "file",
+          "description": "壁纸来源"
+        },
+        "vsw.wallpaper.file": {
+          "type": "string",
+          "default": "",
+          "description": "单文件壁纸路径（图片：png/jpg/webp/gif；视频：mp4/webm）"
+        },
+        "vsw.wallpaper.folder": {
+          "type": "string",
+          "default": "",
+          "description": "壁纸文件夹路径"
+        },
+        "vsw.wallpaper.recursive": {
+          "type": "boolean",
+          "default": true,
+          "description": "轮播时是否递归子文件夹"
+        },
+        "vsw.wallpaper.intervalSec": {
+          "type": "number",
+          "default": 300,
+          "minimum": 5,
+          "description": "文件夹轮播的间隔（秒）"
+        },
+        "vsw.wallpaper.shuffle": {
+          "type": "boolean",
+          "default": true,
+          "description": "轮播时随机顺序"
+        },
+        "vsw.wallpaper.fit": {
+          "type": "string",
+          "enum": [
+            "cover",
+            "contain",
+            "fill",
+            "tile"
+          ],
+          "default": "cover",
+          "description": "壁纸填充方式"
+        },
+        "vsw.wallpaper.opacity": {
+          "type": "number",
+          "default": 1,
+          "minimum": 0.05,
+          "maximum": 1,
+          "description": "壁纸整体不透明度"
+        },
+        "vsw.wallpaper.dim": {
+          "type": "number",
+          "default": 0.25,
+          "minimum": 0,
+          "maximum": 0.9,
+          "description": "壁纸上压一层暗色遮罩的强度（提高文字可读性）"
+        },
+        "vsw.wallpaper.blur": {
+          "type": "number",
+          "default": 0,
+          "minimum": 0,
+          "maximum": 40,
+          "description": "壁纸本身的模糊半径（px）"
+        },
+        "vsw.wallpaper.pauseOnBlur": {
+          "type": "boolean",
+          "default": true,
+          "description": "窗口失去焦点时暂停视频壁纸（省电）"
+        },
+        "vsw.glass.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "启用玻璃拟态（毛玻璃）"
+        },
+        "vsw.glass.blur": {
+          "type": "number",
+          "default": 24,
+          "minimum": 0,
+          "maximum": 80,
+          "description": "毛玻璃模糊半径（px）"
+        },
+        "vsw.glass.opacity": {
+          "type": "number",
+          "default": 0.55,
+          "minimum": 0.05,
+          "maximum": 1,
+          "description": "面板底色不透明度"
+        },
+        "vsw.glass.saturation": {
+          "type": "number",
+          "default": 1.4,
+          "minimum": 0.5,
+          "maximum": 3,
+          "description": "毛玻璃饱和度增益"
+        },
+        "vsw.glass.border": {
+          "type": "boolean",
+          "default": true,
+          "description": "玻璃边缘高光描边"
+        },
+        "vsw.glass.regions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "activitybar",
+              "sidebar",
+              "auxiliarybar",
+              "editor",
+              "panel",
+              "statusbar",
+              "titlebar",
+              "tabs"
+            ]
+          },
+          "default": [
+            "activitybar",
+            "sidebar",
+            "editor",
+            "panel",
+            "statusbar",
+            "tabs"
+          ],
+          "description": "应用玻璃效果的区域"
+        },
+        "vsw.layout.tabRadius": {
+          "type": "number",
+          "default": 8,
+          "minimum": 0,
+          "maximum": 20,
+          "description": "编辑器标签页圆角（px）"
+        },
+        "vsw.layout.compactTabs": {
+          "type": "boolean",
+          "default": false,
+          "description": "紧凑标签页"
+        },
+        "vsw.layout.hideStatusbar": {
+          "type": "boolean",
+          "default": false,
+          "description": "隐藏状态栏"
+        },
+        "vsw.layout.hideActivityBar": {
+          "type": "boolean",
+          "default": false,
+          "description": "隐藏活动栏（最左侧图标栏）"
+        },
+        "vsw.layout.activityBarLocation": {
+          "type": "string",
+          "enum": [
+            "default",
+            "top",
+            "hidden"
+          ],
+          "default": "default",
+          "description": "活动栏位置（写入工作区设置 workbench.activityBar.location）"
+        },
+        "vsw.layout.sideBarLocation": {
+          "type": "string",
+          "enum": [
+            "left",
+            "right"
+          ],
+          "default": "left",
+          "description": "侧边栏位置（写入工作区设置 workbench.sideBar.location）"
+        },
+        "vsw.layout.borderless": {
+          "type": "boolean",
+          "default": true,
+          "description": "去掉面板之间的分界线，让整体更通透"
+        },
+        "vsw.autoReload": {
+          "type": "boolean",
+          "default": true,
+          "description": "应用/还原后自动重载窗口（原地重载，不开新窗口）"
+        },
+        "vsw.wallpaper.weId": {
+          "type": "string",
+          "default": "",
+          "description": "锁定 Wallpaper Engine 里的某张壁纸（工坊目录名）。留空则跟随 WE 当前选中的壁纸"
+        },
+        "vsw.layout.radius": {
+          "type": "number",
+          "default": 0,
+          "minimum": -1,
+          "maximum": 48,
+          "title": "四角圆角（基础值）",
+          "description": "统一圆角半径（px）。单独设置某一角时，该角以单独值为准。0 = 直角。"
+        },
+        "vsw.layout.radiusTopLeft": {
+          "type": "number",
+          "default": -1,
+          "minimum": -1,
+          "maximum": 48,
+          "title": "左上角圆角",
+          "description": "左上角半径（px），-1 表示跟随基础值。"
+        },
+        "vsw.layout.radiusTopRight": {
+          "type": "number",
+          "default": -1,
+          "minimum": -1,
+          "maximum": 48,
+          "title": "右上角圆角",
+          "description": "右上角半径（px），-1 表示跟随基础值。"
+        },
+        "vsw.layout.radiusBottomLeft": {
+          "type": "number",
+          "default": -1,
+          "minimum": -1,
+          "maximum": 48,
+          "title": "左下角圆角",
+          "description": "左下角半径（px），-1 表示跟随基础值。"
+        },
+        "vsw.layout.radiusBottomRight": {
+          "type": "number",
+          "default": -1,
+          "minimum": -1,
+          "maximum": 48,
+          "title": "右下角圆角",
+          "description": "右下角半径（px），-1 表示跟随基础值。"
+        },
+        "vsw.layout.gapTop": {
+          "type": "number",
+          "default": 0,
+          "minimum": 0,
+          "maximum": 48,
+          "description": "左侧栏 / 编辑区 / 右侧栏与顶部标题栏之间的留白，默认 0，推荐 6–12。",
+          "title": "内容区与上边栏的间距 (px)"
+        },
+        "vsw.layout.gapSide": {
+          "type": "number",
+          "default": 0,
+          "minimum": 0,
+          "maximum": 48,
+          "description": "内容区左右两侧的留白，默认 0。",
+          "title": "内容区与左右边缘的间距 (px)"
+        },
+        "vsw.layout.panelRadius": {
+          "type": "number",
+          "default": 0,
+          "minimum": 0,
+          "maximum": 48,
+          "description": "左侧栏 / 编辑区 / 右侧栏的分区圆角（px）。左侧栏左缘、右侧栏右缘保持直角，其余四角按此值圆角。默认 0 关闭。",
+          "title": "分区圆角 (px)"
+        },
+        "vsw.layout.gapBottom": {
+          "type": "number",
+          "default": 0,
+          "minimum": 0,
+          "maximum": 48,
+          "description": "侧边栏 / 编辑区与底部状态栏之间的留白（px）。",
+          "title": "内容区与下边栏的间距 (px)"
+        },
+        "vsw.glass.editorDelta": {
+          "type": "number",
+          "default": 0,
+          "minimum": -0.5,
+          "maximum": 0.5,
+          "markdownDescription": "代码区透明度相对 `vsw.glass.opacity` 的偏移。负数更透明（壁纸更亮），正数更实（代码更清楚）。例如 -0.22。",
+          "title": "代码区透明度偏移"
+        },
+        "vsw.glass.barDelta": {
+          "type": "number",
+          "default": 0,
+          "minimum": -0.5,
+          "maximum": 0.5,
+          "markdownDescription": "标题栏 / 状态栏透明度相对 `vsw.glass.opacity` 的偏移。例如 +0.12 会让上下两条更实。",
+          "title": "标题栏透明度偏移"
+        },
+        "vsw.wallpaper.sceneMode": {
+          "type": "string",
+          "enum": [
+            "preview",
+            "live"
+          ],
+          "enumDescriptions": [
+            "用 Wallpaper Engine 的 preview.gif / preview.jpg 当壁纸（推荐，稳定、有动图）",
+            "让 webwallgl 引擎在页面里真渲染 scene.pkg（实验性：本机实测能挂载但画面偏黑）"
+          ],
+          "default": "live",
+          "markdownDescription": "scene 型壁纸（`scene.pkg`）的处理方式。"
+        },
+        "vsw.debug": {
+          "type": "boolean",
+          "default": false,
+          "description": "在壁纸层左下角显示调试日志（排查问题用，平时关掉）。"
+        },
+        "vsw.sceneProps": {
+          "type": "object",
+          "default": {},
+          "description": "scene 壁纸的用户属性覆盖值（键为 project.json 里的属性名，如 sb=鼠标拖尾、newproperty17=壁纸视差）。一般通过侧边栏面板调整，不必手改。",
+          "additionalProperties": true
+        }
+      }
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "vswPanel",
+          "title": "VSCode-Wallpaper",
+          "icon": "media/sidebar.svg"
+        }
+      ]
+    },
+    "views": {
+      "vswPanel": [
+        {
+          "type": "webview",
+          "id": "vswSidebar",
+          "name": "VSCode-Wallpaper"
+        }
+      ]
+    }
+  },
+  "license": "MIT",
+  "scripts": {
+    "build": "node esbuild.js",
+    "watch": "node esbuild.js --watch",
+    "typecheck": "tsc --noEmit",
+    "package": "node esbuild.js && vsce package --no-dependencies"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/vscode": "^1.146.0",
+    "@vscode/vsce": "^3.2.1",
+    "esbuild": "^0.24.2",
+    "typescript": "^5.7.2"
+  },
+  "dependencies": {
+    "webwallgl": "^3.0.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Void-Stars/VSCode-Wallpaper.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Void-Stars/VSCode-Wallpaper/issues"
+  },
+  "homepage": "https://github.com/Void-Stars/VSCode-Wallpaper#readme"
+}
