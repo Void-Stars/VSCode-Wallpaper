@@ -13,7 +13,6 @@ English | [简体中文](README.zh-CN.md)
 - **Frosted glass**: adjustable blur / opacity / saturation applied to title bar, activity bar, sidebar, editor, panel, auxiliary bar, status bar and tabs — each region can be toggled, brightness offsets per area are configurable.
 - **Floating panels**: turns on VS Code's official *Modern UI* and lets this extension style it (card gaps, unified corner radius, seamless joins).
 - **Wallpaper settings panel**: reads the `general.properties` of the current WE wallpaper and renders controls (bool / slider / combo) right inside the sidebar, e.g. *mouse trail*, *parallax*, *rain*, *audio bars*.
-- **Pointer forwarding**: scene wallpapers receive real mouse movement, so parallax and mouse trails animate while you work.
 
 ## Install
 
