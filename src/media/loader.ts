@@ -675,6 +675,9 @@ const INNER_SELECTORS = [
   '.monaco-workbench .part.activitybar .content',
 ];
 
+/** 我们亲手写过 inline 样式的元素；VSCode 重绘时若把我们写回的值冲掉，靠它来即时补 */
+const managedEls = new Set<HTMLElement>();
+
 function enforceGlass(g: GlassConfig, light: boolean): void {
   if (!g.enabled) return;
   const base = light ? '244,246,250' : '18,20,26';
@@ -695,6 +698,7 @@ function enforceGlass(g: GlassConfig, light: boolean): void {
       for (let i = 0; i < nodes.length; i++) {
         const el = nodes[i] as HTMLElement;
         if (!el.style) continue;
+        managedEls.add(el);
         if (el.style.getPropertyValue('background-color') !== color ||
             el.style.getPropertyPriority('background-color') !== 'important') {
           el.style.setProperty('background-color', color, 'important');
@@ -1033,6 +1037,25 @@ function mount(cfg: VswConfig): void {
     }
   }
 
+  // VSCode 在切标签/换主题时会重画编辑区，把我们写的 inline 样式冲掉，
+  // 1.2s 的轮询补回来就会看到「先亮后暗」的闪跳。用 MutationObserver 在下一帧就补。
+  let rafId = 0;
+  const replay = () => {
+    if (rafId) return;
+    rafId = requestAnimationFrame(() => {
+      rafId = 0;
+      try { enforceGlass(cfg.glass, isLightTheme()); enforceVars(cfg.glass, isLightTheme()); } catch { /* ignore */ }
+    });
+  };
+  const mo = new MutationObserver((muts) => {
+    for (let i = 0; i < muts.length; i++) {
+      const t = muts[i].target;
+      if (t === document.body || (t instanceof HTMLElement && managedEls.has(t))) { replay(); return; }
+    }
+  });
+  mo.observe(document.body, { subtree: true, attributes: true, attributeFilter: ['style', 'class'] });
+
+  // 兜底轮询（MutationObserver 覆盖不到的情况，比如编辑器内部 canvas 重排）
   window.setInterval(() => enforceGlass(cfg.glass, isLightTheme()), 1200);
   window.setInterval(() => enforceVars(cfg.glass, isLightTheme()), 1200);
   enforceVars(cfg.glass, isLightTheme());
