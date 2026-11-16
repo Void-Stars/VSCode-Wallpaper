@@ -3,7 +3,7 @@
   "displayName": "VSCode-Wallpaper",
   "description": "Custom static/animated wallpapers for VS Code, with Wallpaper Engine scene.pkg rendering, frosted glass and floating panels.",
   "icon": "media/icon.png",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "publisher": "void-stars",
   "engines": {
     "vscode": "^1.146.0"
