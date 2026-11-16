@@ -72,6 +72,110 @@ VS Code 的工作台就是一个 `workbench.html` 页面，扩展往里面注入
 
 完整列表见 *设置 → 扩展 → VSCode-Wallpaper*。
 
+## 直接修改 `settings.json`
+
+所有选项都是普通的 VS Code 设置，可以不打开侧边栏面板，直接改配置文件。
+
+**文件在哪**
+
+| 系统 | 路径 |
+| --- | --- |
+| Windows | `%APPDATA%\Code\User\settings.json` |
+| macOS | `~/Library/Application Support/Code/User/settings.json` |
+| Linux | `~/.config/Code/User/settings.json` |
+
+也可以在任意界面按 `Ctrl+Shift+P` → **Preferences: Open User Settings (JSON)** 打开。
+
+**一份可直接抄的完整示例**
+
+```jsonc
+{
+  "vsw.enabled": true,
+  "vsw.wallpaper.source": "wallpaperEngine",
+  "vsw.wallpaper.weId": "3401773707",
+  "vsw.wallpaper.sceneMode": "live",
+  "vsw.wallpaper.dim": 0.25,
+  "vsw.wallpaper.fit": "cover",
+
+  "vsw.glass.enabled": true,
+  "vsw.glass.blur": 26,
+  "vsw.glass.opacity": 0.5,
+  "vsw.glass.saturation": 1.45,
+  "vsw.glass.regions": ["titlebar", "activitybar", "sidebar", "auxiliarybar",
+                         "editor", "panel", "statusbar", "tabs"],
+
+  "vsw.layout.radius": 0,
+  "vsw.layout.panelRadius": 12,
+  "vsw.layout.gapTop": 4,
+  "vsw.layout.tabRadius": 8,
+
+  // scene 壁纸自己的属性，键名来自该壁纸 project.json 里的 general.properties
+  "vsw.sceneProps": {
+    "y": false,
+    "newproperty17": 0.06,
+    "bgm": 0.5
+  }
+}
+```
+
+`vsw.wallpaper.source` 有三种取值：
+
+- `file` —— `vsw.wallpaper.file` 指向单张图片 / 视频 / `scene.pkg`。
+- `folder` —— `vsw.wallpaper.folder` 里的文件按 `intervalSec` 轮播，受 `shuffle`、`recursive` 影响。
+- `wallpaperEngine` —— 跟随 Wallpaper Engine 当前选中的壁纸；想固定某一张就填 `weId`。
+
+**改完之后**
+
+保存文件 → 扩展会自动重新注入运行时 → 再重载一次窗口生效：
+`Ctrl+Shift+P` → **Developer: Reload Window**，或点侧边栏面板里的「重载窗口」。
+（`Ctrl+R` 在 VS Code 里**不是**重载窗口。）开着 `vsw.autoReload` 时扩展会自己完成重载。
+
+**全部设置项**
+
+| Setting | Default | Description |
+| --- | --- | --- |
+| `vsw.enabled` | `false` | 总开关。 |
+| `vsw.wallpaper.source` | `file` | 壁纸来源：`file` / `folder` / `wallpaperEngine`。 |
+| `vsw.wallpaper.file` | `""` | 单张壁纸路径，支持图片、视频、`scene.pkg`。 |
+| `vsw.wallpaper.folder` | `""` | 轮播文件夹路径。 |
+| `vsw.wallpaper.recursive` | `true` | 轮播时是否递归子目录。 |
+| `vsw.wallpaper.intervalSec` | `300` | 轮播间隔（秒）。 |
+| `vsw.wallpaper.shuffle` | `true` | 轮播时随机顺序。 |
+| `vsw.wallpaper.fit` | `cover` | 填充方式：`cover` / `contain` / `fill`。 |
+| `vsw.wallpaper.opacity` | `1` | 壁纸层整体不透明度（0–1）。 |
+| `vsw.wallpaper.dim` | `0.25` | 壁纸压暗程度（0–1），越大越暗。 |
+| `vsw.wallpaper.blur` | `0` | 壁纸本身的模糊半径（px）。 |
+| `vsw.wallpaper.pauseOnBlur` | `true` | 窗口失焦时暂停视频播放。 |
+| `vsw.glass.enabled` | `true` | 毛玻璃开关。 |
+| `vsw.glass.blur` | `24` | 毛玻璃模糊半径（px）。 |
+| `vsw.glass.opacity` | `0.55` | 面板底色不透明度（0–1）。 |
+| `vsw.glass.saturation` | `1.4` | 毛玻璃饱和度倍数。 |
+| `vsw.glass.border` | `true` | 面板是否描边。 |
+| `vsw.glass.regions` | `["activitybar", "sidebar", "editor", "panel", "statusbar", "tabs"]` | 哪些区域应用毛玻璃。 |
+| `vsw.layout.tabRadius` | `8` | 标签页圆角（px）。 |
+| `vsw.layout.compactTabs` | `false` | 紧凑标签页。 |
+| `vsw.layout.hideStatusbar` | `false` | 隐藏状态栏。 |
+| `vsw.layout.hideActivityBar` | `false` | 隐藏活动栏。 |
+| `vsw.layout.activityBarLocation` | `default` | 活动栏位置：`default` / `top` / `hidden`。 |
+| `vsw.layout.sideBarLocation` | `left` | 侧边栏位置：`left` / `right`。 |
+| `vsw.layout.borderless` | `true` | 去掉面板边框线。 |
+| `vsw.autoReload` | `true` | 应用设置后自动重载窗口。 |
+| `vsw.wallpaper.weId` | `""` | 锁定某张 Wallpaper Engine 壁纸的创意工坊 ID。 |
+| `vsw.layout.radius` | `0` | 窗口四角圆角（px），0 为直角。 |
+| `vsw.layout.radiusTopLeft` | `-1` | 单独设置左上角，`-1` 跟随 `radius`。 |
+| `vsw.layout.radiusTopRight` | `-1` | 单独设置右上角，`-1` 跟随 `radius`。 |
+| `vsw.layout.radiusBottomLeft` | `-1` | 单独设置左下角，`-1` 跟随 `radius`。 |
+| `vsw.layout.radiusBottomRight` | `-1` | 单独设置右下角，`-1` 跟随 `radius`。 |
+| `vsw.layout.gapTop` | `0` | 内容区顶部留白（px）。 |
+| `vsw.layout.gapSide` | `0` | 内容区左右留白（px）。 |
+| `vsw.layout.panelRadius` | `0` | 侧栏 / 编辑区圆角（px）。 |
+| `vsw.layout.gapBottom` | `0` | 内容区底部留白（px）。 |
+| `vsw.glass.editorDelta` | `0` | 编辑区亮度偏移（正数更亮）。 |
+| `vsw.glass.barDelta` | `0` | 标题栏 / 状态栏亮度偏移。 |
+| `vsw.wallpaper.sceneMode` | `live` | `live` 实时渲染 `scene.pkg`；`preview` 退回 `preview.gif/jpg`。 |
+| `vsw.debug` | `false` | 在壁纸层左下角显示调试日志框。 |
+| `vsw.sceneProps` | `{}` | scene 壁纸的用户属性（键名取自 project.json）。 |
+
 ## 已知限制
 
 - Windows 上右上角三个窗口按钮由 Electron 的 `titleBarOverlay` 绘制，CSS 改不了。
