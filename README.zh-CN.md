@@ -16,10 +16,20 @@
 
 ## 安装
 
-### 从 VSIX
+### 从插件市场
+
+在扩展面板搜索 **VSCode-Wallpaper**，或：
 
 ```bash
-code --install-extension vscode-wallpaper-glass-1.0.0.vsix --force
+code --install-extension VoidStar.vscode-wallpaper-glass
+```
+
+[市场页面](https://marketplace.visualstudio.com/items?itemName=VoidStar.vscode-wallpaper-glass)
+
+### 从 VSIX（GitHub Releases 下载后双击，或）
+
+```bash
+code --install-extension vscode-wallpaper-glass-1.0.2.vsix --force
 ```
 
 ### 从源码
