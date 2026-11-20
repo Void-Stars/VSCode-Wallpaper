@@ -158,9 +158,6 @@ function buildGlassCss(cfg: GlassConfig, light: boolean): string {
     ? (light ? '1px solid rgba(255,255,255,0.65)' : '1px solid rgba(255,255,255,0.10)')
     : 'none';
 
-  const menuBg = `rgba(${baseRgb}, 0.72)`;
-  const menuBorder = light ? 'rgba(0, 0, 0, 0.10)' : 'rgba(255, 255, 255, 0.10)';
-  const menuBlur = Math.max(0, Math.round(b * 0.8));
 
   // 不模糊，只上底色（标题栏/状态栏/标签栏用：给它们加 blur 会建立
   // containing block，把下拉菜单的 fixed 定位搞坏）
@@ -289,42 +286,8 @@ body.vscode-dark, body.vscode-high-contrast {
   }
 
   parts.push(`
-/* 下拉菜单 / 右键菜单：玻璃质感。
-   只给菜单本体加 blur，外面那层 .context-view 是定位包装层，绝不能碰，
-   否则它内部的 fixed/absolute 会相对它定位（就是之前菜单跑位的成因）。 */
-.monaco-menu-container,
-.context-view .monaco-menu,
-.context-view .monaco-menu-container,
-.monaco-workbench .monaco-menu {
-  background-color: ${menuBg} !important;
-  background-image: none !important;
-  backdrop-filter: blur(${menuBlur}px) saturate(${sat}) !important;
-  -webkit-backdrop-filter: blur(${menuBlur}px) saturate(${sat}) !important;
-  border: 1px solid ${menuBorder} !important;
-  border-radius: 8px !important;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45) !important;
-  overflow: hidden !important;
-}
-.context-view .monaco-menu .monaco-action-bar,
-.context-view .monaco-menu .actions-container,
-.monaco-workbench .monaco-menu .monaco-action-bar {
-  background-color: transparent !important;
-  background-image: none !important;
-}
-/* 下拉框 / 快速输入 / 悬浮提示 / 补全：跟随菜单的玻璃，但同样不加在包装层 */
-.quick-input-widget,
-.monaco-select-box-dropdown-container,
-.suggest-widget,
-.monaco-hover,
-.monaco-editor .parameter-hints-widget,
-.monaco-dialog-box {
-  background-color: ${menuBg} !important;
-  background-image: none !important;
-  backdrop-filter: blur(${menuBlur}px) saturate(${sat}) !important;
-  -webkit-backdrop-filter: blur(${menuBlur}px) saturate(${sat}) !important;
-  border: 1px solid ${menuBorder} !important;
-  border-radius: 8px !important;
-}
+/* 菜单/浮层样式整块移除：优先保证二级子菜单能正常展开，宁可没有玻璃效果。
+   历史原因见 lesson 0mwp21m9 / 0mwp29hy。 */
 /* 标题栏里所有子块都不许自己叠底色，否则会在这条玻璃上糊出几块不透明的方块 */
 /* 只清底色。background-image 不能一刀切 —— 左上角的 VSCode 图标是图片，
    清掉就会「图标不见了」。图片只在明确是纯色容器的元素上清。 */
