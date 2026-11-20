@@ -410,15 +410,14 @@ export function activate(context: vscode.ExtensionContext): void {
   );
 
   // 启动时若已启用，保证注入是最新的（配置可能被改过）
-  const enabled = vscode.workspace.getConfiguration('vsw').get<boolean>('enabled', false);
-  if (enabled) {
-    try {
-      // 每次都重写一遍：配置可能改过，也顺便确认注入块没被其它插件覆盖
-      void doApply(context, true);
-      console.log(`[vsw] 已注入，之前状态 applied=${isApplied()}`);
-    } catch (e) {
-      console.error('[vsw] 启动注入失败', e);
-    }
+  // 无条件调用：enabled 为 true 时注入，为 false 时由 doApply 内部执行 revertPatch 清掉。
+  // 之前这里写成 if (enabled) 才调用，导致关掉插件后再也不会清除已注入的内容，
+  // 用户「关闭壁纸/禁用插件、重启无数遍，效果依然在」就是这个 bug。
+  try {
+    void doApply(context, true);
+    console.log(`[vsw] 启动处理完成，enabled=${vscode.workspace.getConfiguration('vsw').get('enabled', false)} applied=${isApplied()}`);
+  } catch (e) {
+    console.error('[vsw] 启动处理失败', e);
   }
 
   context.subscriptions.push(
@@ -427,11 +426,12 @@ export function activate(context: vscode.ExtensionContext): void {
       // 改了壁纸/玻璃/布局相关设置后自动重新注入，省得用户改完发现没变化。
       // 这里刻意不自动重载窗口（会打断手头的事），只提示一句。
       const hot =
+        e.affectsConfiguration('vsw.enabled') ||
         e.affectsConfiguration('vsw.wallpaper') ||
         e.affectsConfiguration('vsw.glass') ||
         e.affectsConfiguration('vsw.layout');
-      const on = vscode.workspace.getConfiguration('vsw').get<boolean>('enabled', false);
-      if (hot && on) {
+      if (hot) {
+        // 注意不再要求 enabled 为 true：关掉时必须让 doApply 走进清除分支
         void doApply(context, true).then(() => {
           vscode.window.setStatusBarMessage('壁纸设置已重新写入，重载窗口后生效（Ctrl+Shift+P → Reload Window）', 9000);
         });
