@@ -31,6 +31,19 @@ export const COLOR_KEYS = [
   'toolbar.hoverBackground',
 ];
 
+/**
+ * 浮层（菜单 / 右键菜单 / 齿轮菜单 / 源代码管理里的「更多」）的颜色键。
+ * 走官方 colorCustomizations 通道，**不写 CSS** —— 之前用 CSS 给 .monaco-menu
+ * 加 background-color，会让二级子菜单只渲染一条阴影（VSCode 内部定位基准被改）。
+ */
+export const MENU_KEYS: Record<string, string> = {
+  'menu.background': '#14161cd9',
+  'menu.border': '#ffffff1f',
+  'menu.selectionBackground': '#2f3340e6',
+  'menu.selectionForeground': '#ffffff',
+  'menu.separatorBackground': '#ffffff1a',
+};
+
 export interface GlassColors {
   light: boolean;
   /** 0-1，越大越不透明（现在只影响 CSS 层，不写进主题色） */
@@ -65,18 +78,23 @@ export async function applyGlassColors(
   const prev = context.globalState.get<string[]>(WRITTEN_KEY) || [];
   withPrev: for (const k of prev) {
     if (COLOR_KEYS.includes(k)) continue withPrev;
+    if (k in MENU_KEYS) continue withPrev;
     delete next[k];
   }
 
   for (const k of COLOR_KEYS) {
     next[k] = '#00000000';
   }
+  // 浮层：给半透明底色（不能全透，否则菜单上的字在壁纸上糊成一团）
+  for (const [k, v] of Object.entries(MENU_KEYS)) {
+    next[k] = v;
+  }
 
   const same = JSON.stringify(current) === JSON.stringify(next);
   if (same) return;
 
   await wb.update('colorCustomizations', next, vscode.ConfigurationTarget.Global);
-  await context.globalState.update(WRITTEN_KEY, COLOR_KEYS);
+  await context.globalState.update(WRITTEN_KEY, [...COLOR_KEYS, ...Object.keys(MENU_KEYS)]);
 }
 
 /** 还原成改动前的样子 */
