@@ -159,6 +159,20 @@ function buildGlassCss(cfg: GlassConfig, light: boolean): string {
     : 'none';
 
 
+  // 菜单底色：只用于 background-color 一个属性（见下方菜单规则）。
+  // 透明度给得比较高，保证菜单上的文字在任何壁纸上都读得清。
+  const menuBg = 'rgba(20, 22, 28, 0.92)';
+
+  // 吸顶元素（sticky scroll、列表粘性行、面包屑）的底色：
+  // 比普通分区稍实一点点，再配 backdrop-filter 把背后的代码糊掉，
+  // 这样既能透出壁纸的明暗，又不会和滚过来的文字叠在一起。
+  // （之前试过纯实底 rgba(…,0.90)，用户反馈「不透了，但我要的不是黑底」。）
+  const stickyAlpha = Math.max(0.32, alpha - 0.05);
+  const bgSticky = `rgba(${baseRgb}, ${stickyAlpha.toFixed(2)})`;
+  // 吸顶区背后滚的是代码文字（不是壁纸），所以模糊要比普通分区狠得多才糊得干净：
+  // 普通分区 26px，这里 1.8 倍（约 47px）。靠模糊挡内容，底色就能保持通透。
+  const blurSticky = `blur(${Math.round(b * 1.8)}px) saturate(${sat})`;
+
   // 不模糊，只上底色（标题栏/状态栏/标签栏用：给它们加 blur 会建立
   // containing block，把下拉菜单的 fixed 定位搞坏）
   const glassPlain = () => `
@@ -286,8 +300,44 @@ body.vscode-dark, body.vscode-high-contrast {
   }
 
   parts.push(`
-/* 菜单/浮层样式整块移除：优先保证二级子菜单能正常展开，宁可没有玻璃效果。
-   历史原因见 lesson 0mwp21m9 / 0mwp29hy。 */
+/* 菜单 / 右键菜单：**只**加一层底色，别的属性一个都不要加。
+   1.0.0~1.0.5 为了玻璃质感在这里加过 overflow:hidden、backdrop-filter、
+   border、border-radius、box-shadow，结果是二级子菜单只显示一点点阴影、
+   内容完全不渲染（用户实测）。逐个删到「全删光」才恢复，所以现在从最小集
+   重新起步：只有 background-color。改这里之前先想清楚要不要再赌一次。 */
+.monaco-menu-container,
+.context-view .monaco-menu,
+.monaco-workbench .monaco-menu {
+  background-color: ${menuBg} !important;
+}
+
+/* 面包屑（编辑器顶部的「C++ > HelloWorld.cpp > main()」）和资源管理器的
+   粘性文件夹行都是置顶的，滚动时下面的内容会从它们背后穿过去。
+   插件把这些区域的底色改透明之后就会和文字重合，所以必须给它们一块实底。
+   注意：只加 background-color，不加 blur —— 加了会建立 containing block。 */
+.monaco-workbench .monaco-breadcrumbs {
+  background-color: ${bgSticky} !important;
+  background-image: none !important;
+}
+.monaco-workbench .monaco-list-row.sticky,
+.monaco-workbench .monaco-list .monaco-list-row.sticky {
+  background-color: ${bgSticky} !important;
+  background-image: none !important;
+}
+
+/* 编辑器滚动吸顶（sticky scroll）：往上滚时固定在顶部的当前函数/类签名。
+   原厂这里只有 border + box-shadow，背景走 --vscode-editorStickyScroll-background，
+   而这个色本身是 editor.background —— 插件把编辑区改透明后它就跟着透明了，
+   于是吸顶的签名和下面的代码叠在一起。这里直接把底色钉死。
+   （.sticky-widget 自带 overflow:hidden 是原厂行为，子菜单那一套跟它无关，别动。） */
+.monaco-editor .sticky-widget,
+.monaco-editor .sticky-widget .sticky-widget-lines,
+.monaco-editor .sticky-widget .sticky-widget-line-numbers {
+  background-color: ${bgSticky} !important;
+  background-image: none !important;
+  backdrop-filter: ${blurSticky} !important;
+  -webkit-backdrop-filter: ${blurSticky} !important;
+}
 /* 标题栏里所有子块都不许自己叠底色，否则会在这条玻璃上糊出几块不透明的方块 */
 /* 只清底色。background-image 不能一刀切 —— 左上角的 VSCode 图标是图片，
    清掉就会「图标不见了」。图片只在明确是纯色容器的元素上清。 */
