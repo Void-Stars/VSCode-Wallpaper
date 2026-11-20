@@ -159,10 +159,6 @@ function buildGlassCss(cfg: GlassConfig, light: boolean): string {
     : 'none';
 
 
-  // 菜单底色：只用于 background-color 一个属性（见下方菜单规则）。
-  // 透明度给得比较高，保证菜单上的文字在任何壁纸上都读得清。
-  const menuBg = 'rgba(20, 22, 28, 0.92)';
-
   // 吸顶元素（sticky scroll、列表粘性行、面包屑）的底色：
   // 比普通分区稍实一点点，再配 backdrop-filter 把背后的代码糊掉，
   // 这样既能透出壁纸的明暗，又不会和滚过来的文字叠在一起。
@@ -300,16 +296,11 @@ body.vscode-dark, body.vscode-high-contrast {
   }
 
   parts.push(`
-/* 菜单 / 右键菜单：**只**加一层底色，别的属性一个都不要加。
-   1.0.0~1.0.5 为了玻璃质感在这里加过 overflow:hidden、backdrop-filter、
-   border、border-radius、box-shadow，结果是二级子菜单只显示一点点阴影、
-   内容完全不渲染（用户实测）。逐个删到「全删光」才恢复，所以现在从最小集
-   重新起步：只有 background-color。改这里之前先想清楚要不要再赌一次。 */
-.monaco-menu-container,
-.context-view .monaco-menu,
-.monaco-workbench .monaco-menu {
-  background-color: ${menuBg} !important;
-}
+/* 菜单 / 右键菜单 / 齿轮设置菜单 / 源代码管理里的「更多」：
+   底色**全部走 workbench.colorCustomizations 的 menu.* 键**（见 src/colors.ts）。
+   这里一行 CSS 都不写 —— 实测任何对 .monaco-menu 的自定义样式（哪怕只剩
+   background-color）都会让二级子菜单只渲染一条阴影、内容不显示。
+   官方颜色键是 VSCode 自己画的，不参与 CSS 定位计算，所以安全。 */
 
 /* 面包屑（编辑器顶部的「C++ > HelloWorld.cpp > main()」）和资源管理器的
    粘性文件夹行都是置顶的，滚动时下面的内容会从它们背后穿过去。
