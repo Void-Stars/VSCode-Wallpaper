@@ -13,6 +13,7 @@
 - **毛玻璃**：可调模糊 / 不透明度 / 饱和度，作用于标题栏、活动栏、侧栏、编辑器、面板、辅助栏、状态栏、标签页；每个区域可单独开关，还能分区微调亮度。
 - **浮层布局**：打开 VS Code 官方的 *Modern UI*，再由本插件接管样式（卡片间距、统一圆角、接缝处理）。
 - **壁纸自带设置面板**：读取当前 WE 壁纸 `general.properties`，在侧边栏生成对应控件（bool / slider / combo），例如**鼠标拖尾**、**壁纸视差**、**雨**、**音频条**。
+- **吸顶区域有玻璃底**：编辑器的滚动吸顶签名、面包屑、资源管理器的粘性行都有一块磨砂底，滚动时内容不会再从它们背后透上来。它们的模糊是普通面板的 1.8 倍 —— 因为背后滚的是文字而不是壁纸，糊得不够就会看出字。
 
 ## 安装
 
@@ -29,7 +30,7 @@ code --install-extension VoidStar.vscode-wallpaper-glass
 ### 从 VSIX（GitHub Releases 下载后双击，或）
 
 ```bash
-code --install-extension vscode-wallpaper-glass-1.0.2.vsix --force
+code --install-extension vscode-wallpaper-glass-1.1.0.vsix --force
 ```
 
 ### 从源码
@@ -38,7 +39,7 @@ code --install-extension vscode-wallpaper-glass-1.0.2.vsix --force
 npm install
 node esbuild.js
 npx @vscode/vsce package --allow-missing-repository --skip-license
-code --install-extension vscode-wallpaper-glass-1.0.0.vsix --force
+code --install-extension vscode-wallpaper-glass-1.1.0.vsix --force
 ```
 
 > 装上新版本后**要重载两次窗口**：第一次让扩展重写 `workbench.html`，第二次才是页面真正读到它。
@@ -191,6 +192,24 @@ VS Code 的工作台就是一个 `workbench.html` 页面，扩展往里面注入
 - Windows 上右上角三个窗口按钮由 Electron 的 `titleBarOverlay` 绘制，CSS 改不了。
 - 很窄的元素没法和大面板做成同样的磨砂质感：`backdrop-filter` 取的是背后的平均值，44px 宽的活动栏一定比 300px 宽的侧栏更「平」。
 - 依赖重度 GPU 效果的 scene 壁纸，可能比在 Wallpaper Engine 里慢一些。
+
+## 更新日志
+
+### 1.1.0
+
+新增
+
+- 所有吸顶区域都补了玻璃底：编辑器滚动吸顶签名、面包屑、资源管理器粘性行。这里的模糊是普通面板的 1.8 倍，把背后滚动的文字糊掉，同时还能透出壁纸。
+
+修复
+
+- **二级子菜单点不开**。之前给菜单容器加的自定义 CSS（哪怕只是为了圆角加的 `overflow: hidden`，或者 `border` / `box-shadow`）会让二级子菜单只渲染出一小条阴影。现在菜单样式只剩一个 `background-color`。
+- **关掉插件后注入残留**。`activate()` 把整套「注入/清除」逻辑包在了 `if (enabled)` 里，导致内部的 `revertPatch()` 分支永远走不到 —— 关闭壁纸再重启完全没反应。现在清除路径始终可达，切换 `vsw.enabled` 在刷新窗口后生效。
+- 切换编辑器标签页时菜单背景闪一下（原来是 1.2 秒定时器补写的，现在改为 VS Code 覆写后的下一帧补回）。
+
+### 1.0.0 – 1.0.1
+
+首个公开版本：图片 / 视频 / 网页壁纸，Wallpaper Engine 的 `video` / `web` / `scene.pkg`，毛玻璃，Modern UI 浮层，壁纸属性面板。
 
 ## 开发
 
