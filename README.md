@@ -197,6 +197,13 @@ Save the file. The extension re-injects the runtime automatically, then reload t
 
 ## Changelog
 
+### 1.1.2
+
+Fixed
+
+- **Menus no longer get any custom CSS at all.** The previous fix limited menu styling to `background-color`, which still broke submenus in *some* entry points (Source Control → Changes → "More actions"). Menu colours now come from the official `menu.*` theming keys (`menu.background`, `menu.border`, `menu.selectionBackground`, …), which VS Code draws itself and which therefore cannot disturb submenu positioning.
+- Menu background is now 85% opacity instead of fully opaque, so it no longer reads as a solid black slab.
+
 ### 1.1.0
 
 Added
