@@ -13,6 +13,7 @@ English | [简体中文](README.zh-CN.md)
 - **Frosted glass**: adjustable blur / opacity / saturation applied to title bar, activity bar, sidebar, editor, panel, auxiliary bar, status bar and tabs — each region can be toggled, brightness offsets per area are configurable.
 - **Floating panels**: turns on VS Code's official *Modern UI* and lets this extension style it (card gaps, unified corner radius, seamless joins).
 - **Wallpaper settings panel**: reads the `general.properties` of the current WE wallpaper and renders controls (bool / slider / combo) right inside the sidebar, e.g. *mouse trail*, *parallax*, *rain*, *audio bars*.
+- **Sticky areas keep a glass backdrop**: the editor's sticky-scroll signature, the breadcrumb bar and the explorer's pinned rows all get a frosted panel, so scrolled content no longer shows through them. Their blur is 1.8× the normal panels' because what scrolls behind them is text, not wallpaper.
 
 ## Install
 
@@ -31,7 +32,7 @@ code --install-extension VoidStar.vscode-wallpaper-glass
 Grab the latest `.vsix` from [Releases](https://github.com/Void-Stars/VSCode-Wallpaper/releases) and double-click it, or:
 
 ```bash
-code --install-extension vscode-wallpaper-glass-1.0.2.vsix --force
+code --install-extension vscode-wallpaper-glass-1.1.0.vsix --force
 ```
 
 ### From source
@@ -40,7 +41,7 @@ code --install-extension vscode-wallpaper-glass-1.0.2.vsix --force
 npm install
 node esbuild.js
 npx @vscode/vsce package --allow-missing-repository --skip-license
-code --install-extension vscode-wallpaper-glass-1.0.0.vsix --force
+code --install-extension vscode-wallpaper-glass-1.1.0.vsix --force
 ```
 
 > Reload the window **twice** after installing a new version: the first reload lets the extension rewrite `workbench.html`, the second one is what actually loads it.
@@ -193,6 +194,24 @@ Save the file. The extension re-injects the runtime automatically, then reload t
 - Window control buttons (minimize / maximize / close) are drawn by Electron's `titleBarOverlay` on Windows and cannot be styled by CSS.
 - A very narrow element cannot share the same frosted look as a wide one: `backdrop-filter` averages what is behind it, so a 44 px activity bar always looks flatter than a 300 px sidebar.
 - `scene` wallpapers that rely on heavy GPU effects may run slower than in Wallpaper Engine itself.
+
+## Changelog
+
+### 1.1.0
+
+Added
+
+- Frosted backdrop for every sticky area: editor sticky-scroll signature, breadcrumb bar, explorer pinned rows. Blur is larger here (1.8×) so text scrolling underneath gets blurred out while the wallpaper still shows through.
+
+Fixed
+
+- **Submenus did not open.** Any custom CSS on the menu container (even just `overflow: hidden` for rounded corners, or `border` / `box-shadow`) made second-level submenus render as a sliver of shadow. Menu styling is now limited to a single `background-color`.
+- **Disabling the extension left everything behind.** `activate()` wrapped the whole apply/clear routine in `if (enabled)`, so the `revertPatch()` branch inside could never run — turning the wallpaper off and restarting did nothing. Now the clear path is always reachable, and toggling `vsw.enabled` takes effect on reload.
+- Menu backdrop flashing while switching editor tabs (the background was re-applied on a 1.2 s timer; now it is replayed on the next frame when VS Code rewrites it).
+
+### 1.0.0 – 1.0.1
+
+First public release: image / video / web wallpapers, Wallpaper Engine `video` / `web` / `scene.pkg`, frosted glass, Modern UI floating panels, per-wallpaper scene properties panel.
 
 ## Development
 
